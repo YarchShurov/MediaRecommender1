@@ -1,0 +1,2236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaRecommender Complete</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .btn-success { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
+        .btn-warning { background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%); }
+        .btn-danger { background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%); }
+        .btn-info { background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%); }
+        .btn-admin { background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%); }
+        .btn-small { padding: 6px 12px; font-size: 12px; }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .user-badge {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .admin-badge {
+            background: #e83e8c;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            flex-wrap: wrap;
+        }
+        .tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .tab.admin-tab {
+            background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+            color: white;
+        }
+        .tab.admin-tab.active {
+            background: linear-gradient(135deg, #e83e8c 0%, #6f42c1 100%);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .content-card {
+            border: 2px solid #e9ecef;
+            padding: 20px;
+            border-radius: 12px;
+            background: #f8f9fa;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        .content-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        .content-card p {
+            color: #666;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        .rating {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .genres {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        .genre-tag {
+            background: #e7f3ff;
+            color: #0066cc;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            border: 1px solid #cce7ff;
+        }
+        .recommendation-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .recommendation-reason {
+            background: #e7f3ff;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            color: #0066cc;
+            margin-bottom: 10px;
+            border-left: 3px solid #0066cc;
+        }
+
+        .admin-controls {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .admin-controls h5 {
+            margin: 0 0 10px 0;
+            color: #856404;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .rating-section {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .rating-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        .rating-display {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .stat-card:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .login-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .login-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+        .login-card h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .login-card.admin {
+            border-color: #e83e8c;
+        }
+        .login-card.admin h3 {
+            color: #e83e8c;
+        }
+
+        .hidden { display: none; }
+        .alert {
+            padding: 12px 16px;
+            margin: 10px 0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .alert-info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #99d6ff;
+        }
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .loading::after {
+            content: "⏳";
+            font-size: 2em;
+            display: block;
+            margin-top: 10px;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        /* Стили для поиска */
+        .search-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .search-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .algorithm-explanation {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px 0;
+            font-size: 0.9em;
+        }
+
+        .algorithm-step {
+            margin: 10px 0;
+            padding-left: 15px;
+            border-left: 2px solid #ffc107;
+        }
+
+        .confidence-meter {
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            margin: 5px 0;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+            border-radius: 3px;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            .tab {
+                flex: none;
+            }
+            .login-section {
+                grid-template-columns: 1fr;
+            }
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .register-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #e9ecef;
+        }
+
+        .register-section h4 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        /* Стили для поиска */
+        .search-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .search-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Стили для списка пользователей */
+        .user-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .user-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            padding: 15px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .user-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .user-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .user-preferences {
+            background: #e7f3ff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .preference-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin: 5px 0;
+            overflow: hidden;
+        }
+
+        .preference-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+        }
+
+        .user-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.user-card {
+    background: white;
+    border: 2px solid #e9ecef;
+    padding: 20px;
+    border-radius: 12px;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.user-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border-color: #667eea;
+}
+
+.user-card h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 1.3em;
+}
+
+.user-card p {
+    margin: 8px 0;
+    font-size: 0.95em;
+}
+
+.user-preferences {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    border-left: 4px solid #667eea;
+}
+
+.preference-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+}
+
+.preference-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    border-radius: 4px;
+}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 MediaRecommender</h1>
+        <p>Умная система рекомендаций с поддержкой ролей</p>
+    </div>
+
+    <!-- Секция входа и регистрации -->
+    <div class="container" id="authSection">
+        <h2>🔐 Вход в систему</h2>
+        <div id="messages"></div>
+
+        <div class="login-section">
+            <div class="login-card">
+                <h3>👤 Пользователь</h3>
+                <p>Доступ к рекомендациям, оценкам и статистике</p>
+                <button class="btn btn-success" onclick="quickLogin('testuser', 'test123')">
+                    Войти как пользователь
+                </button>
+            </div>
+
+            <div class="login-card admin">
+                <h3>👑 Администратор</h3>
+                <p>Полный доступ к управлению контентом и пользователями</p>
+                <button class="btn btn-admin" onclick="quickLogin('admin', 'admin123')">
+                    Войти как администратор
+                </button>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h4>Или введите свои данные:</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end;">
+                <div class="form-group">
+                    <label>Логин:</label>
+                    <input type="text" id="customUsername" placeholder="Введите логин">
+                </div>
+                <div class="form-group">
+                    <label>Пароль:</label>
+                    <input type="password" id="customPassword" placeholder="Введите пароль">
+                </div>
+                <button class="btn" onclick="customLogin()">Войти</button>
+            </div>
+        </div>
+
+        <!-- Форма регистрации -->
+        <div class="register-section">
+            <h4>📝 Регистрация нового пользователя</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Логин:</label>
+                    <input type="text" id="registerUsername" placeholder="Введите логин">
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="registerEmail" placeholder="Введите email">
+                </div>
+                <div class="form-group">
+                    <label>Пароль:</label>
+                    <input type="password" id="registerPassword" placeholder="Введите пароль">
+                </div>
+                <div class="form-group">
+                    <label>Подтвердите пароль:</label>
+                    <input type="password" id="registerPasswordConfirm" placeholder="Подтвердите пароль">
+                </div>
+            </div>
+            <button class="btn btn-success" onclick="registerUser()">Зарегистрироваться</button>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="btn btn-info" onclick="initData()">🔧 Инициализировать данные</button>
+            <button class="btn btn-warning" onclick="testConnection()">📡 Проверить сервер</button>
+        </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="container hidden" id="contentSection">
+        <div class="user-info">
+            <div>
+                <h3 style="margin: 0;">Добро пожаловать, <span id="userName"></span>!</h3>
+                <span id="userRole" class="user-badge"></span>
+            </div>
+            <div>
+                <button class="btn btn-warning" onclick="loadRecommendations()">🎯 Рекомендации</button>
+                <button class="btn btn-info" onclick="loadUserStats()">📊 Статистика</button>
+                <button class="btn btn-danger" onclick="logout()">Выйти</button>
+            </div>
+        </div>
+
+        <div class="tabs" id="tabsContainer">
+            <button class="tab active" onclick="switchTab('recommendations', this)">🎯 Рекомендации</button>
+            <button class="tab" onclick="switchTab('books', this)">📚 Книги</button>
+            <button class="tab" onclick="switchTab('movies', this)">🎬 Фильмы</button>
+            <button class="tab" onclick="switchTab('games', this)">🎮 Игры</button>
+            <button class="tab" onclick="switchTab('search', this)">🔍 Поиск</button>
+            <button class="tab" onclick="switchTab('add', this)">➕ Добавить</button>
+            <button class="tab" onclick="switchTab('stats', this)">📊 Статистика</button>
+        </div>
+
+        <div id="contentArea">
+            <div class="loading">Загрузка...</div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для редактирования -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <h3>✏️ Редактировать контент</h3>
+            <div id="editForm"></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-success" onclick="saveEdit()">💾 Сохранить</button>
+                <button class="btn btn-danger" onclick="closeModal()">❌ Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для оценки -->
+    <div class="modal" id="ratingModal">
+        <div class="modal-content">
+            <h3 id="ratingTitle">⭐ Оценить контент</h3>
+            <div class="rating-section">
+                <p id="ratingContentInfo"></p>
+                <div class="form-group">
+                    <label>Ваша оценка (1-10):</label>
+                    <input type="range" id="ratingSlider" class="rating-slider" min="1" max="10" value="5"
+                           oninput="updateRatingDisplay()">
+                    <div class="rating-display" id="ratingDisplay">5 ⭐</div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-success" onclick="submitRating()">✅ Оценить</button>
+                <button class="btn btn-danger" onclick="closeModal()">❌ Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8001';
+        let authToken = null;
+        let currentUser = null;
+        let currentTab = 'recommendations';
+        let editingContent = null;
+        let ratingContent = null;
+
+        // === ФУНКЦИИ АВТОРИЗАЦИИ ===
+        async function testConnection() {
+            try {
+                const response = await fetch(`${API_BASE}/`);
+                const data = await response.json();
+                showMessage('✅ Сервер работает: ' + data.message, 'success');
+            } catch (error) {
+                showMessage('❌ Сервер недоступен. Убедитесь что сервер запущен на порту 8001', 'error');
+            }
+        }
+
+        async function initData() {
+            try {
+                showMessage('🔄 Инициализация данных...', 'info');
+                const response = await fetch(`${API_BASE}/init-data`);
+                const data = await response.json();
+                showMessage('✅ ' + data.message, 'success');
+
+                if (data.users) {
+                    showMessage(`👤 Пользователи: ${data.users.user}, 👑 Админ: ${data.users.admin}`, 'info');
+                }
+            } catch (error) {
+                showMessage('❌ Ошибка инициализации: ' + error.message, 'error');
+            }
+        }
+
+        async function quickLogin(username, password) {
+            await performLogin(username, password);
+        }
+
+        async function customLogin() {
+            const username = document.getElementById('customUsername').value;
+            const password = document.getElementById('customPassword').value;
+
+            if (!username || !password) {
+                showMessage('❌ Введите логин и пароль', 'error');
+                return;
+            }
+
+            await performLogin(username, password);
+        }
+
+        async function performLogin(username, password) {
+            try {
+                showMessage('🔐 Вход в систему...', 'info');
+
+                const formData = new FormData();
+                formData.append('username', username);
+                formData.append('password', password);
+
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    authToken = data.access_token;
+                    currentUser = data.user;
+
+                    document.getElementById('userName').textContent = currentUser.username;
+
+                    // Устанавливаем роль пользователя
+                    const roleElement = document.getElementById('userRole');
+                    if (currentUser.role_id === 1) {
+                        roleElement.textContent = '👑 Администратор';
+                        roleElement.className = 'user-badge admin-badge';
+                        showAdminTabs();
+                    } else {
+                        roleElement.textContent = '👤 Пользователь';
+                        roleElement.className = 'user-badge';
+                        hideAdminTabs();
+                    }
+
+                    document.getElementById('authSection').classList.add('hidden');
+                    document.getElementById('contentSection').classList.remove('hidden');
+
+                    showMessage(`✅ Добро пожаловать, ${currentUser.username}!`, 'success');
+                    loadRecommendations();
+                } else {
+                    let errorMessage = 'Неизвестная ошибка';
+                    if (data.detail) {
+                        if (Array.isArray(data.detail)) {
+                            errorMessage = data.detail.map(err => err.msg || err).join(', ');
+                        } else {
+                            errorMessage = data.detail;
+                        }
+                    }
+                    showMessage('❌ Ошибка входа: ' + errorMessage, 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Ошибка подключения: ' + error.message, 'error');
+            }
+        }
+
+        function showAdminTabs() {
+            const tabsContainer = document.getElementById('tabsContainer');
+
+            // Добавляем админские вкладки если их нет
+            if (!document.getElementById('adminManageTab')) {
+                const adminTab = document.createElement('button');
+                adminTab.className = 'tab admin-tab';
+                adminTab.id = 'adminManageTab';
+                adminTab.onclick = () => switchTab('admin-manage', adminTab);
+                adminTab.innerHTML = '👑 Управление';
+                tabsContainer.appendChild(adminTab);
+            }
+        }
+
+        function hideAdminTabs() {
+            const adminTab = document.getElementById('adminManageTab');
+            if (adminTab) {
+                adminTab.remove();
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('contentSection').classList.add('hidden');
+            document.getElementById('customUsername').value = '';
+            document.getElementById('customPassword').value = '';
+            showMessage('👋 Вы вышли из системы', 'info');
+        }
+
+       // === ФУНКЦИИ АДМИНИСТРИРОВАНИЯ ===
+        function showAdminPanel() {
+    const contentArea = document.getElementById('contentArea');
+    contentArea.innerHTML = `
+        <h3>👑 Панель администратора</h3>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchAdminTab('users', this)">👥 Пользователи</button>
+            <button class="tab" onclick="switchAdminTab('content', this)">📚 Контент</button>
+            <button class="tab" onclick="switchAdminTab('analytics', this)">📊 Аналитика</button>
+        </div>
+
+        <div id="adminContent">
+            <div class="loading">Загрузка пользователей...</div>
+        </div>
+    `;
+
+    loadAdminUsers();
+}
+
+function switchAdminTab(tab, element) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    element.classList.add('active');
+
+    switch(tab) {
+        case 'users':
+            loadAdminUsers();
+            break;
+        case 'content':
+            loadAdminContent();
+            break;
+        case 'analytics':
+            loadAdminAnalytics();
+            break;
+    }
+}
+
+// Заменить функцию loadAdminUsers() на реальную:
+
+// Замени функцию loadAdminUsers() на:
+
+async function loadAdminUsers() {
+    const adminContent = document.getElementById('adminContent');
+    adminContent.innerHTML = '<div class="loading">Загрузка пользователей...</div>';
+
+    try {
+        const response = await fetch(`${API_BASE}/admin/users`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const users = await response.json();
+            // Добавляем дополнительные данные для отображения
+            const usersWithStats = await Promise.all(users.map(async (user) => {
+                // Получаем статистику пользователя
+                try {
+                    const statsResponse = await fetch(`${API_BASE}/interactions/stats`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    });
+                    if (statsResponse.ok) {
+                        const stats = await statsResponse.json();
+                        return {
+                            ...user,
+                            total_ratings: stats.total_interactions || 0,
+                            last_activity: user.created_at, // Пока используем дату регистрации
+                            favorite_genres: [] // Пока пусто
+                        };
+                    }
+                } catch (e) {
+                    console.log('Не удалось получить статистику для пользователя', user.user_id);
+                }
+                return {
+                    ...user,
+                    total_ratings: 0,
+                    last_activity: user.created_at,
+                    favorite_genres: []
+                };
+            }));
+
+            displayAdminUsers(usersWithStats);
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Не удалось загрузить пользователей');
+        }
+    } catch (error) {
+        adminContent.innerHTML = `<p>❌ Ошибка загрузки пользователей: ${error.message}</p>`;
+    }
+}
+
+// Обнови функции управления пользователями:
+
+async function blockUser(userId, username) {
+    if (!confirm(`Вы уверены, что хотите заблокировать пользователя ${username}?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/admin/users/${userId}/block`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            showMessage('✅ Пользователь успешно заблокирован', 'success');
+            loadAdminUsers(); // Обновляем список
+        } else {
+            const errorData = await response.json();
+            showMessage(`❌ Ошибка блокировки: ${errorData.detail}`, 'error');
+        }
+    } catch (error) {
+        showMessage(`❌ Ошибка подключения: ${error.message}`, 'error');
+    }
+}
+
+async function unblockUser(userId, username) {
+    if (!confirm(`Вы уверены, что хотите разблокировать пользователя ${username}?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/admin/users/${userId}/unblock`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            showMessage('✅ Пользователь успешно разблокирован', 'success');
+            loadAdminUsers(); // Обновляем список
+        } else {
+            const errorData = await response.json();
+            showMessage(`❌ Ошибка разблокировки: ${errorData.detail}`, 'error');
+        }
+    } catch (error) {
+        showMessage(`❌ Ошибка подключения: ${error.message}`, 'error');
+    }
+}
+
+
+
+async function editUserPreferences(userId) {
+    // Получаем текущие предпочтения пользователя
+    try {
+        const response = await fetch(`${API_BASE}/admin/users/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const userData = await response.json();
+            showEditPreferencesModal(userId, userData.preferences);
+        } else {
+            showMessage('❌ Не удалось получить данные пользователя', 'error');
+        }
+    } catch (error) {
+        showMessage(`❌ Ошибка: ${error.message}`, 'error');
+    }
+}
+
+function showEditPreferencesModal(userId, currentPreferences) {
+    // Создаем модальное окно для редактирования предпочтений
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>✏️ Редактировать предпочтения пользователя</h3>
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Предпочтение популярности (0-100):</label>
+                    <input type="range" id="popularityPref" min="0" max="100" value="${currentPreferences.popularity || 50}"
+                           oninput="document.getElementById('popularityValue').textContent = this.value">
+                    <div>Значение: <span id="popularityValue">${currentPreferences.popularity || 50}</span></div>
+                </div>
+                <div class="form-group">
+                    <label>Предпочтение новизны (0-100):</label>
+                    <input type="range" id="newnessPref" min="0" max="100" value="${currentPreferences.newness || 50}"
+                           oninput="document.getElementById('newnessValue').textContent = this.value">
+                    <div>Значение: <span id="newnessValue">${currentPreferences.newness || 50}</span></div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-success" onclick="saveUserPreferences(${userId})">💾 Сохранить</button>
+                <button class="btn btn-danger" onclick="this.closest('.modal').remove()">❌ Отмена</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+async function saveUserPreferences(userId) {
+    const popularity = document.getElementById('popularityPref').value;
+    const newness = document.getElementById('newnessPref').value;
+
+    try {
+        const response = await fetch(`${API_BASE}/admin/users/${userId}/preferences`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                preferences: {
+                    popularity: parseInt(popularity),
+                    newness: parseInt(newness)
+                }
+            })
+        });
+
+        if (response.ok) {
+            showMessage('✅ Предпочтения пользователя обновлены', 'success');
+            document.querySelector('.modal').remove();
+            loadAdminUsers(); // Обновляем список
+        } else {
+            const errorData = await response.json();
+            showMessage(`❌ Ошибка обновления: ${errorData.detail}`, 'error');
+        }
+    } catch (error) {
+        showMessage(`❌ Ошибка подключения: ${error.message}`, 'error');
+    }
+}
+
+function displayAdminUsers(users) {
+    const adminContent = document.getElementById('adminContent');
+
+    let html = `<h4>Список пользователей (${users.length})</h4>`;
+    html += '<div class="user-list">';
+
+    users.forEach(user => {
+        html += createUserCard(user);
+    });
+
+    html += '</div>';
+    adminContent.innerHTML = html;
+}
+
+// Обнови createUserCard для передачи username:
+
+function createUserCard(user) {
+    const role = user.role_id === 1 ? 'Администратор' : 'Пользователь';
+    const roleClass = user.role_id === 1 ? 'admin-badge' : 'user-badge';
+    const status = user.is_active ? 'Активен' : 'Заблокирован';
+    const statusClass = user.is_active ? 'btn-success' : 'btn-danger';
+
+    const favoriteGenres = user.favorite_genres && user.favorite_genres.length > 0 ?
+        user.favorite_genres.join(', ') : 'Нет данных';
+    const lastActivity = user.last_activity ?
+        new Date(user.last_activity).toLocaleDateString() : 'Никогда';
+
+    return `
+        <div class="user-card">
+            <h4>${user.username}</h4>
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p><strong>Роль:</strong> <span class="${roleClass}">${role}</span></p>
+            <p><strong>Статус:</strong> <span class="${statusClass}" style="padding: 2px 8px; border-radius: 12px; font-size: 12px;">${status}</span></p>
+            <p><strong>Зарегистрирован:</strong> ${new Date(user.created_at).toLocaleDateString()}</p>
+            <p><strong>Последняя активность:</strong> ${lastActivity}</p>
+            <p><strong>Всего оценок:</strong> ${user.total_ratings || 0}</p>
+
+            <div class="user-preferences">
+                <p><strong>Предпочтения:</strong></p>
+                <div>Популярность: ${user.preferences?.popularity || 50}%</div>
+                <div class="preference-bar">
+                    <div class="preference-fill" style="width: ${user.preferences?.popularity || 50}%"></div>
+                </div>
+                <div>Новизна: ${user.preferences?.newness || 50}%</div>
+                <div class="preference-bar">
+                    <div class="preference-fill" style="width: ${user.preferences?.newness || 50}%"></div>
+                </div>
+                <p><strong>Любимые жанры:</strong> ${favoriteGenres}</p>
+            </div>
+
+            <div style="margin-top: 15px; display: flex; gap: 5px; flex-wrap: wrap;">
+                ${user.role_id !== 1 ? `
+                    <button class="btn btn-warning btn-small" onclick="editUserPreferences(${user.user_id}, '${user.username}')">✏️ Предпочтения</button>
+                    <button class="btn btn-info btn-small" onclick="viewUserActivity(${user.user_id})">📊 Активность</button>
+                    ${user.is_active ?
+                        `<button class="btn btn-danger btn-small" onclick="blockUser(${user.user_id}, '${user.username}')">🚫 Блокировать</button>` :
+                        `<button class="btn btn-success btn-small" onclick="unblockUser(${user.user_id}, '${user.username}')">✅ Разблокировать</button>`
+                    }
+                ` : `
+                    <button class="btn btn-info btn-small" onclick="viewUserActivity(${user.user_id})">📊 Активность</button>
+                `}
+            </div>
+        </div>
+    `;
+}
+
+function loadAdminContent() {
+    const adminContent = document.getElementById('adminContent');
+    adminContent.innerHTML = `
+        <h4>Управление контентом</h4>
+        <div class="alert alert-info">
+            Здесь будет возможность управлять всем контентом системы
+        </div>
+        <button class="btn btn-admin" onclick="showBulkAddForm()">📦 Массовое добавление</button>
+    `;
+}
+
+function loadAdminAnalytics() {
+    const adminContent = document.getElementById('adminContent');
+    adminContent.innerHTML = `
+        <h4>Аналитика системы</h4>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number">2</span>
+                <div class="stat-label">Пользователей</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">15</span>
+                <div class="stat-label">Контента</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">0</span>
+                <div class="stat-label">Оценок</div>
+            </div>
+        </div>
+    `;
+}
+
+        // === ОБНОВЛЕННАЯ ФУНКЦИЯ НАВИГАЦИИ ===
+        function switchTab(tab, element) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+            currentTab = tab;
+
+            switch(tab) {
+                case 'recommendations':
+                    loadRecommendations();
+                    break;
+                case 'books':
+                    loadContent('books');
+                    break;
+                case 'movies':
+                    loadContent('movies');
+                    break;
+                case 'games':
+                    loadContent('games');
+                    break;
+                case 'search':
+                    showSearchForm();
+                    break;
+                case 'add':
+                    showAddContentForm();
+                    break;
+                case 'stats':
+                    loadUserStats();
+                    break;
+                case 'admin-manage':
+                    showAdminPanel();
+                    break;
+            }
+        }
+
+        // === УЛУЧШЕННЫЕ ФУНКЦИИ РЕКОМЕНДАЦИЙ ===
+        async function loadRecommendations() {
+            if (!authToken) return;
+
+            document.getElementById('contentArea').innerHTML = '<div class="loading">Загружаем персональные рекомендации...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/recommendations`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayRecommendations(data);
+                } else {
+                    document.getElementById('contentArea').innerHTML = '<p>❌ Ошибка загрузки рекомендаций</p>';
+                }
+            } catch (error) {
+                document.getElementById('contentArea').innerHTML = '<p>❌ Ошибка подключения</p>';
+            }
+        }
+
+        function displayRecommendations(data) {
+            const contentArea = document.getElementById('contentArea');
+
+            let html = '<h3>🎯 Персональные рекомендации</h3>';
+
+            // Пояснение алгоритма
+            html += `
+                <div class="algorithm-explanation">
+                    <h4>📊 Как работают рекомендации:</h4>
+                    <div class="algorithm-step">
+                        <strong>1. Анализ предпочтений:</strong> Система анализирует ваши оценки и жанры, которые вам нравятся
+                    </div>
+                    <div class="algorithm-step">
+                        <strong>2. Совпадение по жанрам:</strong> Ищем контент с похожими жанрами (вес: 40%)
+                    </div>
+                    <div class="algorithm-step">
+                        <strong>3. Учет популярности:</strong> Учитываем общую популярность контента (вес: 30%)
+                    </div>
+                    <div class="algorithm-step">
+                        <strong>4. Новизна:</strong> Балансируем между новым и проверенным контентом (вес: 20%)
+                    </div>
+                    <div class="algorithm-step">
+                        <strong>5. Случайность:</strong> Добавляем немного случайности для открытия нового (вес: 10%)
+                    </div>
+                </div>
+            `;
+
+            if (data.algorithm_explanation && data.algorithm_explanation.total_interactions > 0) {
+                const userStats = data.algorithm_explanation;
+                html += `
+                    <div class="alert alert-info">
+                        📈 На основе ваших ${userStats.total_interactions} взаимодействий.
+                        Любимые жанры: ${Object.keys(userStats.genre_preferences || {}).slice(0, 3).join(', ')}
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="alert alert-warning">
+                        🌟 Оцените несколько произведений, чтобы получить персональные рекомендации!
+                        Система станет точнее с каждым вашим отзывом.
+                    </div>
+                `;
+            }
+
+            if (data.recommendations && data.recommendations.length > 0) {
+                html += '<div class="content-grid">';
+                data.recommendations.forEach(item => {
+                    html += createContentCard(item, true);
+                });
+                html += '</div>';
+            } else {
+                html += '<p>Рекомендации не найдены. Попробуйте оценить несколько произведений!</p>';
+            }
+
+            contentArea.innerHTML = html;
+        }
+
+        // === УЛУЧШЕННЫЙ ПОИСК ===
+        function showSearchForm() {
+            const contentArea = document.getElementById('contentArea');
+            contentArea.innerHTML = `
+                <h3>🔍 Поиск контента</h3>
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" id="searchQuery" placeholder="Введите название, автора, жанр или теги..." onkeypress="if(event.key==='Enter') performSearch()">
+                        <button class="btn btn-info" onclick="performSearch()">Поиск</button>
+                    </div>
+
+                    <div class="search-filters">
+                        <div class="form-group">
+                            <label>Тип контента:</label>
+                            <select id="searchType">
+                                <option value="all">Все типы</option>
+                                <option value="book">📚 Книги</option>
+                                <option value="movie">🎬 Фильмы</option>
+                                <option value="game">🎮 Игры</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Сортировка:</label>
+                            <select id="searchSort">
+                                <option value="relevance">По релевантности</option>
+                                <option value="popularity">По популярности</option>
+                                <option value="year_desc">Сначала новые</option>
+                                <option value="year_asc">Сначала старые</option>
+                                <option value="title">По названию</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Жанр:</label>
+                            <input type="text" id="searchGenre" placeholder="Фантастика, Драма...">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Год от:</label>
+                            <input type="number" id="searchYearFrom" placeholder="1800" min="1800" max="2030">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Год до:</label>
+                            <input type="number" id="searchYearTo" placeholder="2030" min="1800" max="2030">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Мин. рейтинг:</label>
+                            <input type="number" id="searchMinRating" placeholder="0" min="0" max="10" step="0.1">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-info" onclick="performSearch()">🔍 Поиск</button>
+                    <button class="btn btn-warning" onclick="clearSearch()">🔄 Очистить</button>
+                </div>
+
+                <div id="searchResults">
+                    <p>Введите запрос для поиска контента</p>
+                </div>
+            `;
+        }
+
+        async function performSearch() {
+    const query = document.getElementById('searchQuery').value.trim();
+    const type = document.getElementById('searchType').value;
+
+    if (!query) {
+        showMessage('❌ Введите поисковый запрос', 'error');
+        return;
+    }
+
+    document.getElementById('searchResults').innerHTML = '<div class="loading">Поиск...</div>';
+
+    try {
+        let allResults = [];
+
+        // Поиск по книгам
+        if (type === 'all' || type === 'book') {
+            const booksResponse = await fetch(`${API_BASE}/content/books`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            if (booksResponse.ok) {
+                const books = await booksResponse.json();
+                const filteredBooks = books.filter(book =>
+                    book.title.toLowerCase().includes(query.toLowerCase()) ||
+                    (book.author && book.author.toLowerCase().includes(query.toLowerCase()))
+                );
+                allResults = allResults.concat(filteredBooks.map(item => ({...item, content_type: 'book'})));
+            }
+        }
+
+        // Поиск по фильмам
+        if (type === 'all' || type === 'movie') {
+            const moviesResponse = await fetch(`${API_BASE}/content/movies`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            if (moviesResponse.ok) {
+                const movies = await moviesResponse.json();
+                const filteredMovies = movies.filter(movie =>
+                    movie.title.toLowerCase().includes(query.toLowerCase()) ||
+                    (movie.director && movie.director.toLowerCase().includes(query.toLowerCase()))
+                );
+                allResults = allResults.concat(filteredMovies.map(item => ({...item, content_type: 'movie'})));
+            }
+        }
+
+        // Поиск по играм
+        if (type === 'all' || type === 'game') {
+            const gamesResponse = await fetch(`${API_BASE}/content/games`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            if (gamesResponse.ok) {
+                const games = await gamesResponse.json();
+                const filteredGames = games.filter(game =>
+                    game.title.toLowerCase().includes(query.toLowerCase()) ||
+                    (game.developer && game.developer.toLowerCase().includes(query.toLowerCase()))
+                );
+                allResults = allResults.concat(filteredGames.map(item => ({...item, content_type: 'game'})));
+            }
+        }
+
+        displaySearchResults(allResults, query);
+    } catch (error) {
+        document.getElementById('searchResults').innerHTML = '<p>❌ Ошибка поиска</p>';
+    }
+}
+
+function displaySearchResults(results, query) {
+    const resultsDiv = document.getElementById('searchResults');
+
+    if (results.length === 0) {
+        resultsDiv.innerHTML = `<p>📭 По запросу "${query}" ничего не найдено</p>`;
+        return;
+    }
+
+    let html = `<h4>Результаты поиска по запросу "${query}" (${results.length} найдено):</h4>`;
+    html += '<div class="content-grid">';
+
+    results.forEach(item => {
+        html += createContentCard(item, false);
+    });
+
+    html += '</div>';
+    resultsDiv.innerHTML = html;
+}
+
+        function clearSearch() {
+            document.getElementById('searchQuery').value = '';
+            document.getElementById('searchType').value = 'all';
+            document.getElementById('searchSort').value = 'relevance';
+            document.getElementById('searchGenre').value = '';
+            document.getElementById('searchYearFrom').value = '';
+            document.getElementById('searchYearTo').value = '';
+            document.getElementById('searchMinRating').value = '';
+            document.getElementById('searchResults').innerHTML = '<p>Введите запрос для поиска контента</p>';
+        }
+
+        // === ФУНКЦИИ ЗАГРУЗКИ КОНТЕНТА ===
+        async function loadContent(type) {
+            if (!authToken) return;
+
+            document.getElementById('contentArea').innerHTML = '<div class="loading">Загружаем контент...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/content/${type}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const content = await response.json();
+                    displayContent(content, type);
+                } else {
+                    document.getElementById('contentArea').innerHTML = '<p>❌ Ошибка загрузки контента</p>';
+                }
+            } catch (error) {
+                document.getElementById('contentArea').innerHTML = '<p>❌ Ошибка подключения</p>';
+            }
+        }
+
+        function displayContent(items, type) {
+            const contentArea = document.getElementById('contentArea');
+
+            if (items.length === 0) {
+                contentArea.innerHTML = `<p>📭 ${getTypeTitle(type)} не найдены</p>`;
+                return;
+            }
+
+            let html = `<h3>${getTypeIcon(type)} ${getTypeTitle(type)} (${items.length})</h3>`;
+            html += '<div class="content-grid">';
+
+            items.forEach(item => {
+                html += createContentCard(item, false);
+            });
+
+            html += '</div>';
+            contentArea.innerHTML = html;
+        }
+
+        function createContentCard(item, isRecommendation = false) {
+            const genres = Array.isArray(item.genres) ? item.genres : (item.genre ? [item.genre] : []);
+            const genresHtml = genres.map(g => `<span class="genre-tag">${g}</span>`).join('');
+
+            let card = `
+                <div class="content-card">
+                    ${isRecommendation ? '<div class="recommendation-badge">Рекомендуем</div>' : ''}
+                    <h4>${item.title}</h4>
+                    <p><strong>${getCreatorLabel(item.content_type)}:</strong> ${item.creator}</p>
+                    <div class="genres">${genresHtml}</div>
+                    <p><strong>Год:</strong> ${item.year || 'Не указан'}</p>
+                    <p class="rating">⭐ ${item.popularity_score.toFixed(1)}</p>
+            `;
+
+            if (isRecommendation && item.explanation) {
+                card += `
+                    <div class="recommendation-reason">
+                        <strong>Почему рекомендуем:</strong> ${item.explanation.primary_reason}
+                        ${item.confidence ? `<br><small>Уверенность: ${item.confidence.toFixed(1)}%</small>
+                        <div class="confidence-meter">
+                            <div class="confidence-fill" style="width: ${item.confidence}%"></div>
+                        </div>` : ''}
+                    </div>
+                `;
+            }
+
+            card += `
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-success btn-small" onclick="startActivity('${item.content_type}', ${item.id}, '${item.title}')">
+                            ${getActionText(item.content_type)}
+                        </button>
+                        <button class="btn btn-info btn-small" onclick="openRatingModal('${item.content_type}', ${item.id}, '${item.title}')">
+                            ⭐ Оценить
+                        </button>
+                    </div>
+            `;
+
+            // Админские кнопки
+            if (currentUser && currentUser.role_id === 1) {
+                card += `
+                    <div class="admin-controls">
+                        <h5>👑 Управление администратора</h5>
+                        <button class="btn btn-warning btn-small" onclick="openEditModal('${item.content_type}', ${item.id})">
+                            ✏️ Редактировать
+                        </button>
+                        <button class="btn btn-danger btn-small" onclick="deleteContent('${item.content_type}', ${item.id}, '${item.title}')">
+                            🗑️ Удалить
+                        </button>
+                    </div>
+                `;
+            }
+
+            card += '</div>';
+            return card;
+        }
+
+        // === ФУНКЦИИ ВЗАИМОДЕЙСТВИЯ С КОНТЕНТОМ ===
+        async function startActivity(contentType, contentId, title) {
+            showMessage(`🚀 Начинаем ${getActivityName(contentType)} "${title}"...`, 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/simulation/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        content_type: contentType,
+                        content_id: contentId
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showMessage('✅ ' + data.message, 'success');
+
+                    // Симуляция завершения через случайное время (3-8 секунд для демо)
+                    const simulationTime = Math.random() * 5000 + 3000;
+                    setTimeout(() => {
+                        completeActivity(data.simulation_id, title);
+                    }, simulationTime);
+                } else {
+                    const errorData = await response.json();
+                    showMessage('❌ Ошибка симуляции: ' + errorData.detail, 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        async function completeActivity(simulationId, title) {
+            try {
+                const rating = Math.floor(Math.random() * 4) + 7; // Случайная оценка 7-10
+
+                const response = await fetch(`${API_BASE}/simulation/complete/${simulationId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ rating: rating })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showMessage(`🎉 ${data.message} Получено ${data.experience} опыта! Оценка: ${rating}/10`, 'success');
+
+                    // Если мы на вкладке рекомендаций, обновляем их
+                    if (currentTab === 'recommendations') {
+                        setTimeout(() => {
+                            loadRecommendations();
+                        }, 2000);
+                    }
+                } else {
+                    const errorData = await response.json();
+                    showMessage('❌ Ошибка завершения: ' + errorData.detail, 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        // === ФУНКЦИИ ОЦЕНКИ ===
+        function openRatingModal(contentType, contentId, title) {
+            ratingContent = { type: contentType, id: contentId, title: title };
+
+            document.getElementById('ratingTitle').textContent = `⭐ Оценить: ${title}`;
+            document.getElementById('ratingContentInfo').textContent = `Оцените "${title}" от 1 до 10 звезд`;
+            document.getElementById('ratingSlider').value = 5;
+            updateRatingDisplay();
+
+            document.getElementById('ratingModal').style.display = 'flex';
+        }
+
+        function updateRatingDisplay() {
+            const rating = document.getElementById('ratingSlider').value;
+            const stars = '⭐'.repeat(Math.min(rating, 5)) + (rating > 5 ? `+${rating-5}` : '');
+            document.getElementById('ratingDisplay').textContent = `${rating} ${stars}`;
+        }
+
+        async function submitRating() {
+            if (!ratingContent) return;
+
+            const rating = parseInt(document.getElementById('ratingSlider').value);
+
+            try {
+                const response = await fetch(`${API_BASE}/rate-content?content_type=${ratingContent.type}&content_id=${ratingContent.id}&rating=${rating}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showMessage(`✅ ${data.message}. Новая популярность: ${data.new_popularity}`, 'success');
+                    closeModal();
+
+                    // Обновляем текущую вкладку
+                    if (currentTab === 'recommendations') {
+                        loadRecommendations();
+                    } else if (['books', 'movies', 'games'].includes(currentTab)) {
+                        loadContent(currentTab);
+                    } else if (currentTab === 'search') {
+                        performSearch(); // Перезапускаем поиск если мы на вкладке поиска
+                    }
+                } else {
+                    const errorData = await response.json();
+                    showMessage('❌ Ошибка оценки: ' + errorData.detail, 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        // === ФУНКЦИИ ДОБАВЛЕНИЯ КОНТЕНТА ===
+        function showAddContentForm() {
+            const contentArea = document.getElementById('contentArea');
+            contentArea.innerHTML = `
+                <h3>➕ Добавить новый контент</h3>
+                <div class="form-section">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Тип контента:</label>
+                            <select id="addContentType">
+                                <option value="book">📚 Книга</option>
+                                <option value="movie">🎬 Фильм</option>
+                                <option value="game">🎮 Игра</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Название:</label>
+                            <input type="text" id="addTitle" placeholder="Введите название">
+                        </div>
+                        <div class="form-group">
+                            <label>Автор/Режиссер/Разработчик:</label>
+                            <input type="text" id="addCreator" placeholder="Введите имя создателя">
+                        </div>
+                        <div class="form-group">
+                            <label>Жанры (через запятую):</label>
+                            <input type="text" id="addGenres" placeholder="Фантастика, Приключения, Драма">
+                        </div>
+                        <div class="form-group">
+                            <label>Год:</label>
+                            <input type="number" id="addYear" placeholder="2024" min="1800" max="2030">
+                        </div>
+                        <div class="form-group">
+                            <label>Популярность (0-10):</label>
+                            <input type="number" id="addPopularity" placeholder="5.0" min="0" max="10" step="0.1" value="5.0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Описание:</label>
+                        <textarea id="addDescription" placeholder="Краткое описание контента" rows="3"></textarea>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn btn-success" onclick="addNewContent()">✅ Добавить</button>
+                        <button class="btn btn-warning" onclick="clearAddForm()">🔄 Очистить</button>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    💡 <strong>Совет:</strong> Добавляйте жанры через запятую для лучших рекомендаций.
+                    Например: "Фантастика, Приключения, Драма"
+                </div>
+            `;
+        }
+
+        async function addNewContent() {
+            const contentType = document.getElementById('addContentType').value;
+            const title = document.getElementById('addTitle').value;
+            const creator = document.getElementById('addCreator').value;
+            const genres = document.getElementById('addGenres').value;
+            const year = document.getElementById('addYear').value;
+            const popularity = document.getElementById('addPopularity').value;
+            const description = document.getElementById('addDescription').value;
+
+            if (!title || !creator) {
+                showMessage('❌ Заполните обязательные поля: название и создатель', 'error');
+                return;
+            }
+
+            try {
+                const params = new URLSearchParams({
+                    content_type: contentType,
+                    title: title,
+                    creator: creator
+                });
+
+                if (genres) params.append('genres', genres);
+                if (year) params.append('year', year);
+                if (popularity) params.append('popularity_score', popularity);
+                if (description) params.append('description', description);
+
+                const response = await fetch(`${API_BASE}/admin/add-content?${params}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showMessage('✅ ' + data.message, 'success');
+                    clearAddForm();
+                } else {
+                    const errorData = await response.json();
+                    showMessage('❌ Ошибка добавления: ' + errorData.detail, 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        function clearAddForm() {
+            document.getElementById('addTitle').value = '';
+            document.getElementById('addCreator').value = '';
+            document.getElementById('addGenres').value = '';
+            document.getElementById('addYear').value = '';
+            document.getElementById('addPopularity').value = '5.0';
+            document.getElementById('addDescription').value = '';
+        }
+
+        // === ФУНКЦИИ РЕДАКТИРОВАНИЯ (АДМИН) ===
+        async function openEditModal(contentType, contentId) {
+            if (currentUser.role_id !== 1) {
+                showMessage('❌ Доступ запрещен. Требуются права администратора.', 'error');
+                return;
+            }
+
+            // Получаем данные контента
+            try {
+                const response = await fetch(`${API_BASE}/content/${contentType}s`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const items = await response.json();
+                    const item = items.find(i => i.id === contentId);
+
+                    if (item) {
+                        editingContent = { type: contentType, id: contentId, data: item };
+                        showEditForm(item);
+                    }
+                }
+            } catch (error) {
+                showMessage('❌ Ошибка загрузки данных для редактирования', 'error');
+            }
+        }
+
+        function showEditForm(item) {
+            const genres = Array.isArray(item.genres) ? item.genres.join(', ') : (item.genre || '');
+
+            document.getElementById('editForm').innerHTML = `
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Название:</label>
+                        <input type="text" id="editTitle" value="${item.title}">
+                    </div>
+                    <div class="form-group">
+                        <label>${getCreatorLabel(item.content_type)}:</label>
+                        <input type="text" id="editCreator" value="${item.creator}">
+                    </div>
+                    <div class="form-group">
+                        <label>Жанры (через запятую):</label>
+                        <input type="text" id="editGenres" value="${genres}">
+                    </div>
+                    <div class="form-group">
+                        <label>Год:</label>
+                        <input type="number" id="editYear" value="${item.year || ''}" min="1800" max="2030">
+                    </div>
+                    <div class="form-group">
+                        <label>Популярность (0-10):</label>
+                        <input type="number" id="editPopularity" value="${item.popularity_score}" min="0" max="10" step="0.1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Описание:</label>
+                    <textarea id="editDescription" rows="3">${item.description || ''}</textarea>
+                </div>
+            `;
+
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        async function saveEdit() {
+            if (!editingContent) return;
+
+            const title = document.getElementById('editTitle').value;
+            const creator = document.getElementById('editCreator').value;
+            const genres = document.getElementById('editGenres').value;
+            const year = document.getElementById('editYear').value;
+            const popularity = document.getElementById('editPopularity').value;
+            const description = document.getElementById('editDescription').value;
+
+            try {
+                const params = new URLSearchParams();
+                if (title) params.append('title', title);
+                if (creator) params.append('creator', creator);
+                if (genres) params.append('genres', genres);
+                if (year) params.append('year', year);
+                if (popularity) params.append('popularity_score', popularity);
+                if (description) params.append('description', description);
+
+                const response = await fetch(`${API_BASE}/admin/edit-content/${editingContent.type}/${editingContent.id}?${params}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showMessage('✅ ' + data.message, 'success');
+                    closeModal();
+
+                    // Обновляем текущую вкладку
+                    if (['books', 'movies', 'games'].includes(currentTab)) {
+                        loadContent(currentTab);
+                    } else if (currentTab === 'search') {
+                        performSearch();
+                    }
+                } else {
+                    const errorData = await response.json();
+                    showMessage('❌ Ошибка редактирования: ' + errorData.detail, 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteContent(contentType, contentId, title) {
+            if (currentUser.role_id !== 1) {
+                showMessage('❌ Доступ запрещен. Требуются права администратора.', 'error');
+                return;
+            }
+
+            if (!confirm(`Вы уверены, что хотите удалить "${title}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/delete-content/${contentType}/${contentId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showMessage('✅ ' + data.message, 'success');
+
+                    // Обновляем текущую вкладку
+                    if (['books', 'movies', 'games'].includes(currentTab)) {
+                        loadContent(currentTab);
+                    } else if (currentTab === 'search') {
+                        performSearch();
+                    }
+                } else {
+                    const errorData = await response.json();
+                    showMessage('❌ Ошибка удаления: ' + errorData.detail, 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        // === АДМИН-ПАНЕЛЬ ===
+        function showAdminPanel() {
+            const contentArea = document.getElementById('contentArea');
+            contentArea.innerHTML = `
+                <h3>👑 Панель администратора</h3>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-number" id="totalUsers">-</span>
+                        <div class="stat-label">👥 Всего пользователей</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="totalContent">-</span>
+                        <div class="stat-label">📚 Всего контента</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="totalRatings">-</span>
+                        <div class="stat-label">⭐ Всего оценок</div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4>🚀 Быстрые действия</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <button class="btn btn-admin" onclick="showBulkAddForm()">📦 Массовое добавление</button>
+                        <button class="btn btn-warning" onclick="showPopularityManager()">📈 Управление популярностью</button>
+                        <button class="btn btn-info" onclick="showGenreAnalytics()">📊 Аналитика жанров</button>
+                        <button class="btn btn-success" onclick="exportData()">💾 Экспорт данных</button>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    ⚠️ <strong>Внимание:</strong> Вы находитесь в режиме администратора.
+                    Все изменения влияют на всех пользователей системы.
+                </div>
+
+                <div id="adminContent">
+                    <p>Выберите действие выше для начала работы.</p>
+                </div>
+            `;
+
+            loadAdminStats();
+        }
+
+        async function loadAdminStats() {
+            // Здесь можно добавить загрузку статистики для админа
+            // Пока используем заглушки
+            document.getElementById('totalUsers').textContent = '2';
+            document.getElementById('totalContent').textContent = '15';
+            document.getElementById('totalRatings').textContent = '0';
+        }
+
+        function showBulkAddForm() {
+            const adminContent = document.getElementById('adminContent');
+            adminContent.innerHTML = `
+                <h4>📦 Массовое добавление контента</h4>
+                <div class="form-section">
+                    <div class="alert alert-info">
+                        Добавьте несколько элементов контента одновременно. Каждая строка - отдельный элемент.
+                        Формат: Тип|Название|Создатель|Жанры|Год|Популярность|Описание
+                    </div>
+                    <div class="form-group">
+                        <label>Данные для добавления:</label>
+                        <textarea id="bulkData" rows="10" placeholder="book|Гарри Поттер 2|Дж.К. Роулинг|Фэнтези,Приключения|1998|9.0|Вторая часть серии
+movie|Матрица 2|Братья Вачовски|Фантастика,Экшен|2003|8.5|Продолжение культового фильма
+game|Witcher 4|CD Projekt RED|RPG,Фэнтези|2025|8.0|Новая часть серии"></textarea>
+                    </div>
+                    <button class="btn btn-success" onclick="processBulkAdd()">✅ Добавить все</button>
+                </div>
+            `;
+        }
+
+        async function processBulkAdd() {
+            const bulkData = document.getElementById('bulkData').value;
+            const lines = bulkData.split('\n').filter(line => line.trim());
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const line of lines) {
+                const parts = line.split('|').map(p => p.trim());
+                if (parts.length < 3) continue;
+
+                const [type, title, creator, genres = '', year = '', popularity = '5.0', description = ''] = parts;
+
+                try {
+                    const params = new URLSearchParams({
+                        content_type: type,
+                        title: title,
+                        creator: creator
+                    });
+
+                    if (genres) params.append('genres', genres);
+                    if (year) params.append('year', year);
+                    if (popularity) params.append('popularity_score', popularity);
+                    if (description) params.append('description', description);
+
+                    const response = await fetch(`${API_BASE}/admin/add-content?${params}`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    });
+
+                    if (response.ok) {
+                        successCount++;
+                    } else {
+                        errorCount++;
+                    }
+                } catch (error) {
+                    errorCount++;
+                }
+            }
+
+            showMessage(`✅ Массовое добавление завершено: ${successCount} успешно, ${errorCount} ошибок`, 'success');
+            document.getElementById('bulkData').value = '';
+        }
+
+        // === ФУНКЦИИ СТАТИСТИКИ ===
+        async function loadUserStats() {
+            if (!authToken) return;
+
+            document.getElementById('contentArea').innerHTML = '<div class="loading">Загружаем статистику...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/user/stats`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const stats = await response.json();
+                    displayStats(stats);
+                } else {
+                    document.getElementById('contentArea').innerHTML = '<p>❌ Ошибка загрузки статистики</p>';
+                }
+            } catch (error) {
+                document.getElementById('contentArea').innerHTML = '<p>❌ Ошибка подключения</p>';
+            }
+        }
+
+        function displayStats(stats) {
+            const contentArea = document.getElementById('contentArea');
+
+            const html = `
+                <h3>📊 Ваша статистика</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-number">${stats.total_interactions}</span>
+                        <div class="stat-label">Всего взаимодействий</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">${stats.completed}</span>
+                        <div class="stat-label">Завершено</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">${stats.average_rating}</span>
+                        <div class="stat-label">Средняя оценка</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">${stats.by_content_type.books}</span>
+                        <div class="stat-label">📚 Книг прочитано</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">${stats.by_content_type.movies}</span>
+                        <div class="stat-label">🎬 Фильмов просмотрено</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">${stats.by_content_type.games}</span>
+                        <div class="stat-label">🎮 Игр пройдено</div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info" style="margin-top: 20px;">
+                    💡 <strong>Совет:</strong> Чем больше контента вы оцениваете, тем точнее становятся рекомендации!
+                    ${stats.total_interactions === 0 ? ' Начните с оценки нескольких произведений.' : ''}
+                </div>
+
+                ${stats.completed > 0 ? `
+                <div class="form-section">
+                    <h4>🎯 Ваш профиль предпочтений</h4>
+                    <p>На основе ваших ${stats.completed} завершенных взаимодействий система изучает ваши предпочтения
+                    и предлагает персональные рекомендации.</p>
+                </div>
+                ` : ''}
+            `;
+
+            contentArea.innerHTML = html;
+        }
+
+        // === ФУНКЦИИ РЕГИСТРАЦИИ ===
+        async function registerUser() {
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+
+            // Валидация
+            if (!username || !email || !password) {
+                showMessage('❌ Заполните все обязательные поля', 'error');
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                showMessage('❌ Пароли не совпадают', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage('❌ Пароль должен содержать минимум 6 символов', 'error');
+                return;
+            }
+
+            try {
+                showMessage('📝 Регистрация нового пользователя...', 'info');
+
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        email: email,
+                        password: password
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showMessage(`✅ Пользователь ${data.username} успешно зарегистрирован! Теперь вы можете войти.`, 'success');
+
+                    // Очищаем форму
+                    document.getElementById('registerUsername').value = '';
+                    document.getElementById('registerEmail').value = '';
+                    document.getElementById('registerPassword').value = '';
+                    document.getElementById('registerPasswordConfirm').value = '';
+                } else {
+                    const errorData = await response.json();
+                    let errorMessage = 'Ошибка регистрации';
+                    if (errorData.detail) {
+                        if (Array.isArray(errorData.detail)) {
+                            errorMessage = errorData.detail.map(err => err.msg || err).join(', ');
+                        } else {
+                            errorMessage = errorData.detail;
+                        }
+                    }
+                    showMessage('❌ ' + errorMessage, 'error');
+                }
+            } catch (error) {
+                showMessage('❌ Ошибка подключения: ' + error.message, 'error');
+            }
+        }
+
+        // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+            document.getElementById('ratingModal').style.display = 'none';
+            editingContent = null;
+            ratingContent = null;
+        }
+
+        function getTypeIcon(type) {
+            const icons = { 'books': '📚', 'movies': '🎬', 'games': '🎮' };
+            return icons[type] || '📄';
+        }
+
+        function getTypeTitle(type) {
+            const titles = { 'books': 'Книги', 'movies': 'Фильмы', 'games': 'Игры' };
+            return titles[type] || type;
+        }
+
+        function getCreatorLabel(type) {
+            const labels = {
+                'book': 'Автор', 'books': 'Автор',
+                'movie': 'Режиссер', 'movies': 'Режиссер',
+                'game': 'Разработчик', 'games': 'Разработчик'
+            };
+            return labels[type] || 'Создатель';
+        }
+
+        function getActionText(type) {
+            const actions = {
+                'book': '📖 Читать', 'books': '📖 Читать',
+                'movie': '🎬 Смотреть', 'movies': '🎬 Смотреть',
+                'game': '🎮 Играть', 'games': '🎮 Играть'
+            };
+            return actions[type] || 'Начать';
+        }
+
+        function getActivityName(type) {
+            const names = {
+                'book': 'чтение', 'books': 'чтение',
+                'movie': 'просмотр', 'movies': 'просмотр',
+                'game': 'игру', 'games': 'игру'
+            };
+            return names[type] || 'взаимодействие';
+        }
+
+        function showMessage(message, type) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+
+            // Автоматически скрываем сообщение через 5 секунд
+            setTimeout(() => {
+                if (messagesDiv.innerHTML.includes(message)) {
+                    messagesDiv.innerHTML = '';
+                }
+            }, 5000);
+        }
+
+        // === СОБЫТИЯ ===
+        // Закрытие модальных окон по клику вне их
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                closeModal();
+            }
+        });
+
+        // Закрытие модальных окон по ESC
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Автоматическая проверка подключения при загрузке
+        window.addEventListener('load', () => {
+            testConnection();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест входа</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .btn { background: #007bff; color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 5px; cursor: pointer; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Тест системы входа</h1>
+    
+    <button class="btn" onclick="testServer()">1. Тест сервера</button>
+    <button class="btn" onclick="testInit()">2. Тест инициализации</button>
+    <button class="btn" onclick="testLogin()">3. Тест входа</button>
+    <button class="btn" onclick="testBooks()">4. Тест книг</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8001';
+        let authToken = null;
+
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+
+        async function testServer() {
+            addResult('🔄 Проверка сервера...');
+            try {
+                const response = await fetch(`${API_BASE}/`);
+                const data = await response.json();
+                addResult(`✅ Сервер работает: ${JSON.stringify(data)}`, 'success');
+            } catch (error) {
+                addResult(`❌ Ошибка сервера: ${error.message}`, 'error');
+            }
+        }
+
+        async function testInit() {
+            addResult('🔄 Тест инициализации...');
+            try {
+                const response = await fetch(`${API_BASE}/init-data`);
+                const data = await response.json();
+                addResult(`✅ Инициализация: ${JSON.stringify(data)}`, 'success');
+            } catch (error) {
+                addResult(`❌ Ошибка инициализации: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin() {
+            addResult('🔄 Тест входа (FormData)...');
+            try {
+                const formData = new FormData();
+                formData.append('username', 'testuser');
+                formData.append('password', 'test123');
+                
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                addResult(`📊 Ответ сервера (${response.status}): <pre>${JSON.stringify(data, null, 2)}</pre>`);
+                
+                if (response.ok && data.access_token) {
+                    authToken = data.access_token;
+                    addResult(`✅ Вход успешен! Токен: ${authToken.substring(0, 20)}...`, 'success');
+                } else {
+                    addResult(`❌ Ошибка входа: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Ошибка запроса: ${error.message}`, 'error');
+            }
+        }
+
+        async function testBooks() {
+            if (!authToken) {
+                addResult('❌ Сначала выполните вход!', 'error');
+                return;
+            }
+            
+            addResult('🔄 Тест загрузки книг...');
+            try {
+                const response = await fetch(`${API_BASE}/content/books`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                const data = await response.json();
+                addResult(`📚 Книги (${response.status}): <pre>${JSON.stringify(data, null, 2)}</pre>`);
+                
+                if (response.ok) {
+                    addResult(`✅ Загружено ${data.length} книг`, 'success');
+                } else {
+                    addResult(`❌ Ошибка загрузки книг`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Ошибка запроса книг: ${error.message}`, 'error');
+            }
+        }
+
+        // Автоматический тест при загрузке
+        window.addEventListener('load', () => {
+            addResult('🚀 Страница загружена. Нажимайте кнопки по порядку для тестирования.');
+        });
+    </script>
+</body>
+</html>
